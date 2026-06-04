@@ -34,7 +34,7 @@ jobs:
 
     #SAST: запуск SpotBugs + FindSecBugs
     - name: Run SpotBugs Static Analysis (SAST)
-      run: ./mvnw compile spotbugs:check
+      run: ./mvnw compile com.github.spotbugs:spotbugs-maven-plugin:4.8.5.0:check
 
     #SCA: сканирование зависимостей и уязвимостей библиотек с помощью Trivy
     - name: Run Trivy Vulnerability Scanner (SCA)
