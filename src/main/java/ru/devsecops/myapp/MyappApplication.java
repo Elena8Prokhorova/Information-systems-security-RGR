@@ -58,11 +58,13 @@ public class MyappApplication {
                     //Полная защита от Кликджекинга (запрет тегов iframe)
                     .frameOptions(frame -> frame.deny())
                     .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'none';"))
+                    .contentTypeOptions(contentType -> contentType.withDefaults())
                 )
-                .requiresChannel(channel -> channel
+                //ОТКЛЮЧЕНО ДЛЯ ДЕМОНСТРАЦИИ РАБОТЫ ПРИЛОЖЕНИЯ
+                /*.requiresChannel(channel -> channel
                     //Принудительный перевод всех запросов на шифрованный канал HTTPS
                     .anyRequest().requiresSecure()
-                )
+                )*/
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()); //Разрешаем доступ к демо-странице
             return http.build();
         }
