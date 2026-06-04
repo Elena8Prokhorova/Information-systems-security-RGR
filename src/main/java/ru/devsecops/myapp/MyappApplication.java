@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import jakarta.servlet.http.HttpSession;
 
 @SpringBootApplication
 @Controller
@@ -27,10 +28,6 @@ public class MyappApplication {
         "Инь-Ян - Камикадзе"
     );
 
-    //Для хранения последней отправленной оценки
-    private static String lastSong = "";
-    private static int lastGrade = 0;
-
 	public static void main(String[] args) {
 		SpringApplication.run(MyappApplication.class, args);
 	}
@@ -44,19 +41,22 @@ public class MyappApplication {
     //Оценить песню
     @PostMapping("/grade")
     @ResponseBody
-    public Map<String, String> rateSong(@RequestParam String song, @RequestParam int grade) {
-        this.lastSong = song;
-        this.lastGrade = grade;
+    public Map<String, String> rateSong(@RequestParam String song, @RequestParam int grade, HttpSession session) {
+        session.setAttribute("lastSong", song);
+        session.setAttribute("lastGrade", grade);
 
-		System.out.println("\n[ОТВЕТ СЕРВЕРА] Получена новая оценка: Песня = '" + song + "', Оценка = " + grade + "\n");
+		System.out.println("\n[ОТВЕТ СЕРВЕРА] Получена новая оценка (Сессия №" + session.getId() +
+            "): Песня = '" + song + "', Оценка = " + grade + "%n");
         return Map.of("status", "success", "message", "Оценка принята сервером!");
     }
 
     //Запрос для "Получить отзыв"
     @GetMapping("/review")
     @ResponseBody
-    public Map<String, String> getAiReview() {
-        if (lastSong.isEmpty()) {
+    public Map<String, String> getAiReview(HttpSession session) {
+        String lastSong = (String) session.getAttribute("lastSong");
+        Integer lastGrade = (Integer) session.getAttribute("lastGrade");
+        if (lastSong == null || lastGrade == null) {
             return Map.of("review", "Ошибка: Сначала выберите песню и отправьте оценку.");
         }
 
@@ -75,7 +75,7 @@ public class MyappApplication {
         }
 
         String aiResponse = String.format(
-            "ИИ-Аналитик: Вы оценили трек «%s» на %d из 5. Сформирован отзыв: \n\n%s", 
+            "ИИ-Аналитик: Вы оценили трек «%s» на %d из 5. Сформирован отзыв: %n%n%s", 
             lastSong, lastGrade, moodText
         );
         
