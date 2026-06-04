@@ -1,0 +1,47 @@
+name: DevSecOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  security-scan:
+    name: Security Auditing (SAST, SCA & Secrets)
+    runs-on: ubuntu-latest
+
+    steps:
+    #Скачивание исходного кода из репозитория
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    #Автоматический поиск забытых паролей и токенов (Gitleaks)
+    - name: Run Gitleaks Secret Scanning
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    #Среда Java 21 на сервере автоматизации
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    #SAST: запуск SpotBugs + FindSecBugs
+    - name: Run SpotBugs Static Analysis (SAST)
+      run: ./mvnw compile spotbugs:check
+
+    #SCA: сканирование зависимостей и уязвимостей библиотек с помощью Trivy
+    - name: Run Trivy Vulnerability Scanner (SCA)
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        exit-code: '0'
+        severity: 'CRITICAL,HIGH'
