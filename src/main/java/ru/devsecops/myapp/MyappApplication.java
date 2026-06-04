@@ -8,6 +8,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @SpringBootApplication
 @Controller
@@ -31,6 +38,36 @@ public class MyappApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(MyappApplication.class, args);
 	}
+
+    //Меры по обеспечению ИБ
+    @Configuration
+    @EnableWebSecurity
+    public static class SecurityConfig {
+
+        //Безопасный энкодер паролей BCrypt
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+            http
+                .csrf(csrf -> csrf.disable()) // Отключаем CSRF для демонстрационных API-запросов
+                .headers(headers -> headers
+                    //Полная защита от Кликджекинга (запрет тегов iframe)
+                    .frameOptions(frame -> frame.deny())
+                    .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'none';"))
+                )
+                .requiresChannel(channel -> channel
+                    //Принудительный перевод всех запросов на шифрованный канал HTTPS
+                    .anyRequest().requiresSecure()
+                )
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()); //Разрешаем доступ к демо-странице
+            return http.build();
+        }
+    }
+
 
 	@GetMapping
     public String index(Model model) {
