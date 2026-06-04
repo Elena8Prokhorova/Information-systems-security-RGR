@@ -58,7 +58,7 @@ public class MyappApplication {
                     //Полная защита от Кликджекинга (запрет тегов iframe)
                     .frameOptions(frame -> frame.deny())
                     .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'none';"))
-                    .contentTypeOptions(contentType -> contentType.withDefaults())
+                    .contentTypeOptions(contentType -> {})
                 )
                 //ОТКЛЮЧЕНО ДЛЯ ДЕМОНСТРАЦИИ РАБОТЫ ПРИЛОЖЕНИЯ
                 /*.requiresChannel(channel -> channel
