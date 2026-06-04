@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Музыкальный ИИ Сервис</title>
+    <style>
+        body { font-family: sans-serif; margin: 50px; background-color: #f0f2f5; }
+        .box { background: white; padding: 25px; border-radius: 8px; max-width: 450px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        select, button { width: 100%; padding: 10px; margin-top: 12px; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        #reviewBtn { background: #28a745; }
+        #reviewBtn:disabled { background: #cccccc; cursor: not-allowed; }
+        #reviewBlock { margin-top: 20px; padding: 12px; background: #e9ecef; border-left: 5px solid #28a745; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Оценка песен</h2>
+    
+    <label>1. Выберите песню из списка:</label>
+    <select id="songInput">
+        <!-- Цикл Thymeleaf, который подставит песни из Java-кода -->
+        <option th:each="song : ${songs}" th:value="${song}" th:text="${song}"></option>
+    </select>
+
+    <label style="display:block; margin-top:15px;">2. Выберите оценку:</label>
+    <select id="gradeInput">
+        <option value="1">1 — Ужасно</option>
+        <option value="2">2 — Плохо</option>
+        <option value="3">3 — Нормально</option>
+        <option value="4">4 — Хорошо</option>
+        <option value="5">5 — Отлично</option>
+    </select>
+
+    <!-- Кнопка отправки оценки -->
+    <button id="gradeBtn" onclick="submitGrade()">Оценить</button>
+    
+    <!-- Кнопка получения отзыва (изначально заблокирована) -->
+    <button id="reviewBtn" onclick="fetchReview()" disabled>Получить отзыв</button>
+
+    <!-- Блок, куда запишется отзыв ИИ -->
+    <div id="reviewBlock"></div>
+</div>
+
+<script>
+    // Функция отправки оценки на сервер
+    function submitGrade() {
+        const song = document.getElementById('songInput').value;
+        const grade = document.getElementById('gradeInput').value;
+        
+        // Отправляем POST запрос
+        fetch('/grade?song=' + encodeURIComponent(song) + '&grade=' + grade, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message); // Показываем сообщение об успешной оценке
+                document.getElementById('reviewBtn').disabled = false; // Разблокируем вторую кнопку
+            });
+    }
+
+    // Функция получения отзыва ИИ
+    function fetchReview() {
+        fetch('/review')
+            .then(response => response.json())
+            .then(data => {
+                const block = document.getElementById('reviewBlock');
+                block.innerText = data.review;
+                block.style.display = 'block'; // Делаем блок видимым
+            });
+    }
+</script>
+
+</body>
+</html>
